@@ -11,15 +11,16 @@ impl Server {
         Server { fs }
     }
 
-    pub(crate) fn handle_message(&self, req: Request, mut stream: UnixStream) {
+    pub async fn handle_message(&self, req: Request, mut stream: UnixStream) {
         match req {
+            // TODO: improve error handling
             Request::Read { path } => {
                 stream
-                    .write_all(self.fs.read(&path).unwrap().as_bytes())
+                    .write_all(self.fs.read(&path).await.unwrap().as_bytes())
                     .unwrap();
             }
             Request::Write { path, content } => {
-                self.fs.write(&path, &content).unwrap();
+                self.fs.write(&path, &content).await.unwrap();
                 stream.write_all(b"OK").unwrap();
             }
         }
